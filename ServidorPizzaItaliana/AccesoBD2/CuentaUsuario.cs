@@ -14,8 +14,7 @@ namespace AccesoBD2
     
     public partial class CuentaUsuario
     {
-        public int IdCuentaUsuario { get; set; }
-        public string nombreUsuario { get; set; }
+        public int nombreUsuario { get; set; }
         public string contraseña { get; set; }
     
         public virtual Empleado Empleado { get; set; }
