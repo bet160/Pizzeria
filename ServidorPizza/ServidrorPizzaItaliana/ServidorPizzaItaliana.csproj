@@ -58,6 +58,7 @@
     <Compile Include="IEditarIngrediente.cs" />
     <Compile Include="IRecuperarProductos.cs" />
     <Compile Include="IRegistrarIngrediente.cs" />
+    <Compile Include="IRegistrarPedidoADomicilio.cs" />
     <Compile Include="Servicios.cs" />
     <Compile Include="IBuscarProducto.cs" />
     <Compile Include="IModificarProducto.cs" />

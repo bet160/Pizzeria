@@ -2,7 +2,7 @@
 -- --------------------------------------------------
 -- Entity Designer DDL Script for SQL Server 2005, 2008, 2012 and Azure
 -- --------------------------------------------------
--- Date Created: 05/10/2020 13:18:48
+-- Date Created: 05/13/2020 14:01:35
 -- Generated from EDMX file: C:\Users\BETO\Documents\OCTAVO SEMESTRE\DESARROLLO DE SOFTWARE\ServidorPizza\AccesoBD2\Model1.edmx
 -- --------------------------------------------------
 
@@ -30,14 +30,8 @@ GO
 IF OBJECT_ID(N'[dbo].[FK_EmpleadoRol]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[EmpleadoSet] DROP CONSTRAINT [FK_EmpleadoRol];
 GO
-IF OBJECT_ID(N'[dbo].[FK_PedidoCliente]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[PedidoSet] DROP CONSTRAINT [FK_PedidoCliente];
-GO
 IF OBJECT_ID(N'[dbo].[FK_EmpleadoPedido]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[PedidoSet] DROP CONSTRAINT [FK_EmpleadoPedido];
-GO
-IF OBJECT_ID(N'[dbo].[FK_MesaPedido]', 'F') IS NOT NULL
-    ALTER TABLE [dbo].[PedidoSet] DROP CONSTRAINT [FK_MesaPedido];
 GO
 IF OBJECT_ID(N'[dbo].[FK_EstadoPedido]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[PedidoSet] DROP CONSTRAINT [FK_EstadoPedido];
@@ -74,6 +68,18 @@ IF OBJECT_ID(N'[dbo].[FK_RecetaProvision_Receta]', 'F') IS NOT NULL
 GO
 IF OBJECT_ID(N'[dbo].[FK_RecetaProvision_Provision]', 'F') IS NOT NULL
     ALTER TABLE [dbo].[RecetaProvision] DROP CONSTRAINT [FK_RecetaProvision_Provision];
+GO
+IF OBJECT_ID(N'[dbo].[FK_ClientePedidoADomicilio]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[PedidoSet_PedidoADomicilio] DROP CONSTRAINT [FK_ClientePedidoADomicilio];
+GO
+IF OBJECT_ID(N'[dbo].[FK_MesaPedidoLocal]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[PedidoSet_PedidoLocal] DROP CONSTRAINT [FK_MesaPedidoLocal];
+GO
+IF OBJECT_ID(N'[dbo].[FK_PedidoADomicilio_inherits_Pedido]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[PedidoSet_PedidoADomicilio] DROP CONSTRAINT [FK_PedidoADomicilio_inherits_Pedido];
+GO
+IF OBJECT_ID(N'[dbo].[FK_PedidoLocal_inherits_Pedido]', 'F') IS NOT NULL
+    ALTER TABLE [dbo].[PedidoSet_PedidoLocal] DROP CONSTRAINT [FK_PedidoLocal_inherits_Pedido];
 GO
 
 -- --------------------------------------------------
@@ -124,6 +130,12 @@ IF OBJECT_ID(N'[dbo].[RecetaSet]', 'U') IS NOT NULL
 GO
 IF OBJECT_ID(N'[dbo].[ProvisionSet]', 'U') IS NOT NULL
     DROP TABLE [dbo].[ProvisionSet];
+GO
+IF OBJECT_ID(N'[dbo].[PedidoSet_PedidoADomicilio]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[PedidoSet_PedidoADomicilio];
+GO
+IF OBJECT_ID(N'[dbo].[PedidoSet_PedidoLocal]', 'U') IS NOT NULL
+    DROP TABLE [dbo].[PedidoSet_PedidoLocal];
 GO
 IF OBJECT_ID(N'[dbo].[DireccionCliente]', 'U') IS NOT NULL
     DROP TABLE [dbo].[DireccionCliente];
@@ -185,12 +197,8 @@ GO
 CREATE TABLE [dbo].[PedidoSet] (
     [Id] int IDENTITY(1,1) NOT NULL,
     [fecha] datetime  NOT NULL,
-    [total] float  NOT NULL,
-    [tipo] nvarchar(max)  NOT NULL,
     [instruccionesEspeciales] nvarchar(max)  NULL,
-    [Cliente_Id] int  NOT NULL,
     [Empleado_IdEmpleado] int  NOT NULL,
-    [Mesa_Id] int  NOT NULL,
     [Estado_Id] int  NOT NULL,
     [Cuenta_Id] int  NOT NULL
 );
@@ -232,7 +240,7 @@ CREATE TABLE [dbo].[ProductoSet] (
     [nombre] nvarchar(max)  NOT NULL,
     [descripcion] nvarchar(max)  NOT NULL,
     [precioUnitario] float  NOT NULL,
-    [imagen] image  NULL,
+    [imagen] tinyint  NULL,
     [activado] bit  NOT NULL,
     [restricciones] nvarchar(max)  NOT NULL,
     [Categoria_Id] int  NOT NULL,
@@ -262,7 +270,7 @@ GO
 CREATE TABLE [dbo].[ProvisionDirectaSet] (
     [Id] int IDENTITY(1,1) NOT NULL,
     [descripcion] nvarchar(max)  NOT NULL,
-    [imagen] image  NULL,
+    [imagen] tinyint  NULL,
     [activado] bit  NOT NULL,
     [restricciones] nvarchar(max)  NOT NULL,
     [Provision_Id] int  NOT NULL
@@ -286,6 +294,20 @@ CREATE TABLE [dbo].[ProvisionSet] (
     [stockMinimo] nvarchar(max)  NOT NULL,
     [costoUnitario] float  NOT NULL,
     [unidadMedida] nvarchar(max)  NOT NULL
+);
+GO
+
+-- Creating table 'PedidoSet_PedidoADomicilio'
+CREATE TABLE [dbo].[PedidoSet_PedidoADomicilio] (
+    [ClienteId] int  NOT NULL,
+    [Id] int  NOT NULL
+);
+GO
+
+-- Creating table 'PedidoSet_PedidoLocal'
+CREATE TABLE [dbo].[PedidoSet_PedidoLocal] (
+    [MesaId] int  NOT NULL,
+    [Id] int  NOT NULL
 );
 GO
 
@@ -411,6 +433,18 @@ ADD CONSTRAINT [PK_ProvisionSet]
     PRIMARY KEY CLUSTERED ([Id] ASC);
 GO
 
+-- Creating primary key on [Id] in table 'PedidoSet_PedidoADomicilio'
+ALTER TABLE [dbo].[PedidoSet_PedidoADomicilio]
+ADD CONSTRAINT [PK_PedidoSet_PedidoADomicilio]
+    PRIMARY KEY CLUSTERED ([Id] ASC);
+GO
+
+-- Creating primary key on [Id] in table 'PedidoSet_PedidoLocal'
+ALTER TABLE [dbo].[PedidoSet_PedidoLocal]
+ADD CONSTRAINT [PK_PedidoSet_PedidoLocal]
+    PRIMARY KEY CLUSTERED ([Id] ASC);
+GO
+
 -- Creating primary key on [Direccion_Id], [Cliente_Id] in table 'DireccionCliente'
 ALTER TABLE [dbo].[DireccionCliente]
 ADD CONSTRAINT [PK_DireccionCliente]
@@ -508,21 +542,6 @@ ON [dbo].[EmpleadoSet]
     ([Rol_Id]);
 GO
 
--- Creating foreign key on [Cliente_Id] in table 'PedidoSet'
-ALTER TABLE [dbo].[PedidoSet]
-ADD CONSTRAINT [FK_PedidoCliente]
-    FOREIGN KEY ([Cliente_Id])
-    REFERENCES [dbo].[ClienteSet]
-        ([Id])
-    ON DELETE NO ACTION ON UPDATE NO ACTION;
-GO
-
--- Creating non-clustered index for FOREIGN KEY 'FK_PedidoCliente'
-CREATE INDEX [IX_FK_PedidoCliente]
-ON [dbo].[PedidoSet]
-    ([Cliente_Id]);
-GO
-
 -- Creating foreign key on [Empleado_IdEmpleado] in table 'PedidoSet'
 ALTER TABLE [dbo].[PedidoSet]
 ADD CONSTRAINT [FK_EmpleadoPedido]
@@ -536,21 +555,6 @@ GO
 CREATE INDEX [IX_FK_EmpleadoPedido]
 ON [dbo].[PedidoSet]
     ([Empleado_IdEmpleado]);
-GO
-
--- Creating foreign key on [Mesa_Id] in table 'PedidoSet'
-ALTER TABLE [dbo].[PedidoSet]
-ADD CONSTRAINT [FK_MesaPedido]
-    FOREIGN KEY ([Mesa_Id])
-    REFERENCES [dbo].[MesaSet]
-        ([Id])
-    ON DELETE NO ACTION ON UPDATE NO ACTION;
-GO
-
--- Creating non-clustered index for FOREIGN KEY 'FK_MesaPedido'
-CREATE INDEX [IX_FK_MesaPedido]
-ON [dbo].[PedidoSet]
-    ([Mesa_Id]);
 GO
 
 -- Creating foreign key on [Estado_Id] in table 'PedidoSet'
@@ -713,6 +717,54 @@ GO
 CREATE INDEX [IX_FK_RecetaProvision_Provision]
 ON [dbo].[RecetaProvision]
     ([Provision_Id]);
+GO
+
+-- Creating foreign key on [ClienteId] in table 'PedidoSet_PedidoADomicilio'
+ALTER TABLE [dbo].[PedidoSet_PedidoADomicilio]
+ADD CONSTRAINT [FK_ClientePedidoADomicilio]
+    FOREIGN KEY ([ClienteId])
+    REFERENCES [dbo].[ClienteSet]
+        ([Id])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_ClientePedidoADomicilio'
+CREATE INDEX [IX_FK_ClientePedidoADomicilio]
+ON [dbo].[PedidoSet_PedidoADomicilio]
+    ([ClienteId]);
+GO
+
+-- Creating foreign key on [MesaId] in table 'PedidoSet_PedidoLocal'
+ALTER TABLE [dbo].[PedidoSet_PedidoLocal]
+ADD CONSTRAINT [FK_MesaPedidoLocal]
+    FOREIGN KEY ([MesaId])
+    REFERENCES [dbo].[MesaSet]
+        ([Id])
+    ON DELETE NO ACTION ON UPDATE NO ACTION;
+GO
+
+-- Creating non-clustered index for FOREIGN KEY 'FK_MesaPedidoLocal'
+CREATE INDEX [IX_FK_MesaPedidoLocal]
+ON [dbo].[PedidoSet_PedidoLocal]
+    ([MesaId]);
+GO
+
+-- Creating foreign key on [Id] in table 'PedidoSet_PedidoADomicilio'
+ALTER TABLE [dbo].[PedidoSet_PedidoADomicilio]
+ADD CONSTRAINT [FK_PedidoADomicilio_inherits_Pedido]
+    FOREIGN KEY ([Id])
+    REFERENCES [dbo].[PedidoSet]
+        ([Id])
+    ON DELETE CASCADE ON UPDATE NO ACTION;
+GO
+
+-- Creating foreign key on [Id] in table 'PedidoSet_PedidoLocal'
+ALTER TABLE [dbo].[PedidoSet_PedidoLocal]
+ADD CONSTRAINT [FK_PedidoLocal_inherits_Pedido]
+    FOREIGN KEY ([Id])
+    REFERENCES [dbo].[PedidoSet]
+        ([Id])
+    ON DELETE CASCADE ON UPDATE NO ACTION;
 GO
 
 -- --------------------------------------------------

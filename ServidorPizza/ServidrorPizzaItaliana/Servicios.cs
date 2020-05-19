@@ -83,11 +83,11 @@ namespace ServidrorPizzaItaliana
                 db.Entry(d).State = EntityState.Modified;
                 db.SaveChanges();
 
-                Callback2.Respuesta("Cambios Guardados");
+                Callback2.RespuestaModificarProducto("Cambios Guardados");
             }
             catch (InvalidOperationException)
             {
-                Callback2.Respuesta("Error al guardar cambios");
+                Callback2.RespuestaModificarProducto("Error al guardar cambios");
             }
 
         }
@@ -114,6 +114,7 @@ namespace ServidrorPizzaItaliana
                 }
                 else
                 {
+                    
                     db.ProvisionSet.Add(provision);
                     db.SaveChanges();
                     Callback3.Respuesta("Exito al registrar ingrediente");
@@ -180,7 +181,7 @@ namespace ServidrorPizzaItaliana
         }
     }
 
-    public partial class Servicios : IEditararIngrediente
+    public partial class Servicios : IEditarIngrediente
     {
         public void Editar(Provision provision)
         {
@@ -242,6 +243,111 @@ namespace ServidrorPizzaItaliana
             get
             {
                 return OperationContext.Current.GetCallbackChannel<IRecuperarProductosCallback>();
+            }
+        }
+    }
+
+    public partial class Servicios : IRegistrarPedidoADomicilio
+    {
+
+        public void ObtenerDatos(int idEmpleado)
+        {
+            List<ProductoDePedido> productos = new List<ProductoDePedido>();
+            List<ProvisionVentaDirecta> provisionesVentaDirectas = new List<ProvisionVentaDirecta>();
+            List<Cliente> clientes = new List<Cliente>();
+            List<DireccionCliente> di = new List<DireccionCliente>();
+            List<TelefonoCliente> telefonosDeCliente = new List<TelefonoCliente>();
+            List<EstadoDePedido> estados = new List<EstadoDePedido>();
+         
+            try
+            {
+                db.Configuration.ProxyCreationEnabled = false;
+                var productosRecuperados = db.ProductoSet.Include(x => x.Categoria).ToList();
+                var provisionesRecuperadas = db.ProvisionDirectaSet.Include(x => x.Provision).ToList();
+                var clientesRecuperados = db.ClienteSet.Include(x => x.Direccion).Include(b => b.Telefono).ToList();
+                var empleado = (from e in db.EmpleadoSet where e.IdEmpleado == idEmpleado select e).First();
+                var estadosRecuperados = db.EstadoSet.ToList();
+
+                foreach (AccesoBD2.Producto a in productosRecuperados)
+                {
+                    ProductoDePedido productoRecuperado = new ProductoDePedido(a.Id, a.nombre, a.descripcion, a.precioUnitario, a.restricciones, a.Categoria.categoria);
+                    productos.Add(productoRecuperado);
+                    Console.WriteLine(productoRecuperado.Categoria);
+                }
+
+                foreach (ProvisionDirecta a in provisionesRecuperadas)
+                {
+                    ProvisionVentaDirecta provisionRecuperada = new ProvisionVentaDirecta(a.Id, a.Provision.Id, a.Provision.nombre, a.Provision.costoUnitario, a.descripcion, a.restricciones);
+                    provisionesVentaDirectas.Add(provisionRecuperada);
+                    Console.WriteLine(provisionRecuperada.IdProvision.ToString());
+                }
+
+                foreach (AccesoBD2.Cliente a in clientesRecuperados)
+                {
+                    foreach (Direccion b in a.Direccion){
+                        DireccionCliente dir = new DireccionCliente(b.calle, b.colonia, b.numeroExterior, b.numeroInterior);
+                        di.Add(dir);
+
+                        foreach (Telefono t in a.Telefono)
+                        {
+                            TelefonoCliente tel = new TelefonoCliente(t.numeroTelefono);
+                            telefonosDeCliente.Add(tel);
+                        }
+                    }
+
+                    Cliente clienteRecuperado = new Cliente(a.Id, a.nombre, a.apellidoPaterno, a.apellidoMaterno, di, telefonosDeCliente);
+                    clientes.Add(clienteRecuperado);
+                    
+                }
+
+                foreach (Estado e in estadosRecuperados)
+                {
+                    EstadoDePedido estado = new EstadoDePedido(e.Id, e.estadoPedido);
+                    estados.Add(estado);
+                }
+
+                Callback7.Datos(clientes, productos, provisionesVentaDirectas, empleado, estados);
+        }
+            catch (Exception e){
+                Console.WriteLine(e.StackTrace);
+                Callback7.Mensaje("Mensaje de error");
+            }
+        }
+
+       public void RegistrarPedido(PedidoADomicilio pedido)
+        {
+            try
+            {
+
+                PedidoADomicilio pd = new PedidoADomicilio();
+                pd.Cliente = pedido.Cliente;
+                pd.ClienteId = pedido.Cliente.Id;
+                pd.Estado = pedido.Estado;
+                pd.Empleado.Pedido = new List<Pedido>();
+                pd.Empleado.Pedido.Add(pedido);
+                pd.Cuenta = pedido.Cuenta;
+                pd.fecha = pedido.fecha;
+                pd.instruccionesEspeciales = pedido.instruccionesEspeciales;
+                pd.Producto = pedido.Producto;
+                pd.ProvisionDirecta = pedido.ProvisionDirecta;
+
+                db.CuentaSet.Add(pedido.Cuenta);
+                db.PedidoSet.Add(pd);
+                db.SaveChanges();
+                Callback7.Mensaje("Exito al registrar ingrediente");
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine(e.StackTrace);
+                Callback7.Mensaje("Ocurrio un error");
+            }
+        }
+
+        IRegistrarPedidoADomicilioCallback Callback7
+        {
+            get
+            {
+                return OperationContext.Current.GetCallbackChannel<IRegistrarPedidoADomicilioCallback>();
             }
         }
     }
